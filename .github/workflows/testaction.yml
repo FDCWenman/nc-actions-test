@@ -15,6 +15,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Get list of changed files
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          files_changed=$(git diff --name-only origin/${{ github.base_ref }})
+          echo "Files changed: $files_changed"
+      
       - name: Check if JS files were modified
         id: check_js
         run: |
