@@ -23,9 +23,9 @@ jobs:
         id: check_version_php
         if: steps.check_js.outputs.js_changes != '0'
         run: |
-          if ! git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q 'version.php'; then
-            echo "Error: JavaScript changes detected but version.php is not modified."
-            exit 1
+          if ! (git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q '\.js$' && git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q 'version.php'); then
+              echo "Error: JavaScript changes detected but version.php is not modified."
+              exit 1
           fi
 
       - name: Validate version increment
