@@ -17,13 +17,13 @@ jobs:
         id: check_js
         run: |
           js_changes=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.js$' | wc -l)
-          echo "::set-output name=js_changes::$js_changes"
+          echo "{js_changes}={$js_changes}" >> $GITHUB_OUTPUT
 
       - name: Check for version.php changes
         id: check_version_php
         if: steps.check_js.outputs.js_changes != '0'
         run: |
-          if ! (git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q '\.js$' && git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q 'version.php'); then
+          if ! (git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q 'version.php'); then
               echo "Error: JavaScript changes detected but version.php is not modified."
               exit 1
           fi
@@ -38,6 +38,3 @@ jobs:
             echo "Error: version.php does not contain a valid version increment."
             exit 1
           fi
-
-      - name: Print GitHub event context
-        run: echo "${{ toJson(github.event) }}"
