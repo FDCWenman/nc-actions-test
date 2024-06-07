@@ -1,0 +1,38 @@
+name: Check JS Changes and Version Increments
+
+on:
+  pull_request:
+    paths:
+      - '**.js'
+      - 'version.php'
+
+jobs:
+  check-js-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Check if JS files were modified
+        id: check_js
+        run: |
+          js_changes=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.js$' | wc -l)
+          echo "::set-output name=js_changes::$js_changes"
+
+      - name: Check version increment
+        id: check_version
+        if: steps.check_js.outputs.js_changes != '0'
+        run: |
+          if ! git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q 'version.php'; then
+            echo "Error: JS changes detected but version.php is not modified."
+            exit 1
+          fi
+
+      - name: Validate version increment
+        if: steps.check_version.conclusion != 'failure'
+        run: |
+          version_incremented=$(grep -E "define\('VERSION', '.*'\);" version.php | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | tail -n 1)
+          if [ -z "$version_incremented" ]; then
+            echo "Error: version.php does not contain a valid version increment."
+            exit 1
+          fi
