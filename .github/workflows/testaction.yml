@@ -31,10 +31,7 @@ jobs:
       - name: Validate version increment
         if: steps.check_version.conclusion != 'failure'
         run: |
-           # Extract version strings from version.php file
           version_strings=$(grep -E "\['(admin|teacher|user)\.version'\] = '[0-9]+\.[0-9]+\.[0-9]+'" version.php)
-
-          # Extract the last version string
           version_incremented=$(echo "$version_strings" | awk '{print $NF}')
 
           if [ -z "$version_incremented" ]; then
