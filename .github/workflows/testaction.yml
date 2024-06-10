@@ -61,25 +61,20 @@ jobs:
         run: |
           check_version_increment() {
             local version_key=$1
-            local version_file="version.php"
-            local version_incremented=$(grep -E "\['$version_key'\] = '[0-9]+\.[0-9]+\.[0-9]+'" "$version_file")
+            local changes=$2
+            if [ "$changes" -ne "0" ]; then
+              local version_file="version.php"
+              local version_incremented=$(git diff origin/${{ github.base_ref }} ${{ github.sha }} -- "$version_file" | grep -E "\['$version_key'\] = '[0-9]+\.[0-9]+\.[0-9]+'")
 
-            echo "Checking $version_key: $version_incremented"
+              echo "Checking $version_key: $version_incremented"
 
-            if [ -z "$version_incremented" ]; then
-              echo "Error: $version_key in version.php is not incremented."
-              exit 1
+              if [ -z "$version_incremented" ]; then
+                echo "Error: $version_key in version.php is not incremented."
+                exit 1
+              fi
             fi
           }
 
-          if [ "$admin_changes" -ne "0" ]; then
-            check_version_increment "admin.version"
-          fi
-
-          if [ "$user_changes" -ne "0" ]; then
-            check_version_increment "user.version"
-          fi
-
-          if [ "$teacher_changes" -ne "0" ]; then
-            check_version_increment "teacher.version"
-          fi
+          check_version_increment "admin.version" "$admin_changes"
+          check_version_increment "user.version" "$user_changes"
+          check_version_increment "teacher.version" "$teacher_changes"
