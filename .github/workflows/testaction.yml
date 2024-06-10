@@ -53,7 +53,7 @@ jobs:
           git show origin/${{ github.base_ref }}:version.php > previous_version.php
 
       - name: Validate version increment
-        if: steps.check_admin.outputs.admin_changes != '0' || steps.check_user.outputs.user_changes != '0' || steps.check_teacher.outputs.teacher_changes != '0'
+        if: env.admin_changes != '0' || env.user_changes != '0' || env.teacher_changes != '0'
         run: |
           check_version_increment() {
             local version_key=$1
