@@ -2,10 +2,10 @@
 # --- CSS & JS VERSION CONTROL ---
 
 // admin
-$config['admin.version'] = '2.12.11';
+$config['admin.version'] = '2.12.12';
 
 // teacher
-$config['teacher.version'] = '2.11.89';
+$config['teacher.version'] = '2.11.90';
 
 // user
-$config['user.version'] = '9.14.60';
+$config['user.version'] = '9.14.61';
