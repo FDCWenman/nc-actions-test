@@ -20,7 +20,7 @@ jobs:
         id: get_changed_files
         run: |
           git fetch origin ${{ github.base_ref }}
-          files_changed=$(git diff --name-only origin/${{ github.base_ref }})
+          files_changed=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }})
           echo "Files changed: $files_changed"
           echo "files_changed<<EOF" >> $GITHUB_ENV
           echo "$files_changed" >> $GITHUB_ENV
