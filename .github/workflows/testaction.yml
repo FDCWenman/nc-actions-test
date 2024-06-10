@@ -62,9 +62,11 @@ jobs:
           check_version_increment() {
             local version_key=$1
             local version_file="version.php"
-            local version_incremented=$(grep -E "\['$version_key'\] = '[0-9]+\.[0-9]+\.[0-9]+'" "$version_file" | wc -l)
+            local version_incremented=$(grep -E "\['$version_key'\] = '[0-9]+\.[0-9]+\.[0-9]+'" "$version_file")
 
-            if [ "$version_incremented" -eq "0" ]; then
+            echo "Checking $version_key: $version_incremented"
+
+            if [ -z "$version_incremented" ]; then
               echo "Error: $version_key in version.php is not incremented."
               exit 1
             fi
