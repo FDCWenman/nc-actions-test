@@ -26,17 +26,17 @@ jobs:
         id: check_js
         run: |
           js_changes=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.js$' | wc -l)
-          echo "js_changes=$js_changes" >> $GITHUB_STATE
+          echo "js_changes=$js_changes" >> $GITHUB_ENV
 
-      - name: Check if JS files were modified
+      - name: Check if CSS files were modified
         id: check_css
         run: |
-          css_changes=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.css$' | wc -l)
-          echo "css_changes=$css_changes" >> $GITHUB_STATE
+           css_changes=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.css$' | wc -l)
+           echo "css_changes=$css_changes" >> $GITHUB_ENV
 
       - name: Check for version.php changes
         id: check_version_php
-        if: steps.check_js.outputs.js_changes != '0' || steps.check_css.outputs.css_changes != '0'
+        if: env.js_changes != '0' || env.css_changes != '0'
         run: |
           if ! (git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q 'version.php'); then
               echo "Error: JavaScript / CSS changes detected but version.php is not modified."
