@@ -25,7 +25,7 @@ jobs:
         id: check_js
         run: |
           js_changes=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.js$' | wc -l)
-          echo "js_changes=$js_changes" >> $GITHUB_ENV
+          echo "js_changes=$js_changes" >> $GITHUB_OUTPUT
 
       - name: Check for version.php changes
         id: check_version_php
