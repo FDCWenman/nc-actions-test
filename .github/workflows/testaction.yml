@@ -20,7 +20,7 @@ jobs:
         id: get_changed_files
         run: |
           git fetch origin ${{ github.base_ref }}
-          files_changed=$(git diff --name-only origin/${{ github.base_ref }})
+          files_changed=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }})
           echo "Files changed: $files_changed"
           echo "files_changed<<EOF" >> $GITHUB_ENV
           echo "$files_changed" >> $GITHUB_ENV
@@ -31,18 +31,21 @@ jobs:
         run: |
           admin_changes=$(echo "$files_changed" | grep -E '^(admin/.*\.js|admin/.*\.css)$' | wc -l)
           echo "admin_changes=$admin_changes" >> $GITHUB_ENV
+          echo "Admin changes: $admin_changes"
 
       - name: Check if user files were modified
         id: check_user
         run: |
           user_changes=$(echo "$files_changed" | grep -E '^(user/.*\.js|user/.*\.css)$' | wc -l)
           echo "user_changes=$user_changes" >> $GITHUB_ENV
+          echo "User changes: $user_changes"
 
       - name: Check if teacher files were modified
         id: check_teacher
         run: |
           teacher_changes=$(echo "$files_changed" | grep -E '^(teacher/.*\.js|teacher/.*\.css)$' | wc -l)
           echo "teacher_changes=$teacher_changes" >> $GITHUB_ENV
+          echo "Teacher changes: $teacher_changes"
 
       - name: Check for version.php changes
         id: check_version_php
@@ -58,8 +61,13 @@ jobs:
         run: |
           check_version_increment() {
             local version_key=$1
-            if ! grep -q "$version_key" version.php; then
-              echo "Error: version.php does not contain an increment for $version_key."
+            local version_file="version.php"
+            local version_incremented=$(grep -E "\['$version_key'\] = '[0-9]+\.[0-9]+\.[0-9]+'" "$version_file")
+
+            echo "Checking $version_key: $version_incremented"
+
+            if [ -z "$version_incremented" ]; then
+              echo "Error: $version_key in version.php is not incremented."
               exit 1
             fi
           }
