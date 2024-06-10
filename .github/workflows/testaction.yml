@@ -17,28 +17,36 @@ jobs:
           fetch-depth: 0
 
       - name: Get list of changed files
+        id: get_changed_files
         run: |
           git fetch origin ${{ github.base_ref }}
           files_changed=$(git diff --name-only origin/${{ github.base_ref }})
           echo "Files changed: $files_changed"
-      
-      - name: Check if JS files were modified
-        id: check_js
-        run: |
-          js_changes=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.js$' | wc -l)
-          echo "js_changes=$js_changes" >> $GITHUB_ENV
+          echo "files_changed=$files_changed" >> $GITHUB_ENV
 
-      - name: Check if CSS files were modified
-        id: check_css
+      - name: Check if admin files were modified
+        id: check_admin
         run: |
-           css_changes=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.css$' | wc -l)
-           echo "css_changes=$css_changes" >> $GITHUB_ENV
+          admin_changes=$(echo "$files_changed" | grep -E '^(admin/.*\.js|admin/.*\.css)$' | wc -l)
+          echo "admin_changes=$admin_changes" >> $GITHUB_ENV
+
+      - name: Check if user files were modified
+        id: check_user
+        run: |
+          user_changes=$(echo "$files_changed" | grep -E '^(user/.*\.js|user/.*\.css)$' | wc -l)
+          echo "user_changes=$user_changes" >> $GITHUB_ENV
+
+      - name: Check if teacher files were modified
+        id: check_teacher
+        run: |
+          teacher_changes=$(echo "$files_changed" | grep -E '^(teacher/.*\.js|teacher/.*\.css)$' | wc -l)
+          echo "teacher_changes=$teacher_changes" >> $GITHUB_ENV
 
       - name: Check for version.php changes
         id: check_version_php
-        if: env.js_changes != '0' || env.css_changes != '0'
+        if: env.admin_changes != '0' || env.user_changes != '0' || env.teacher_changes != '0'
         run: |
-          if ! (git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q 'version.php'); then
+          if ! (echo "$files_changed" | grep -q 'version.php'); then
               echo "Error: JavaScript / CSS changes detected but version.php is not modified."
               exit 1
           fi
@@ -46,10 +54,22 @@ jobs:
       - name: Validate version increment
         if: steps.check_version_php.conclusion != 'failure'
         run: |
-          version_strings=$(grep -E "\['(admin|teacher|user)\.version'\] = '[0-9]+\.[0-9]+\.[0-9]+'" version.php)
-          version_incremented=$(echo "$version_strings" | awk '{print $NF}')
+          check_version_increment() {
+            local version_key=$1
+            if ! grep -q "$version_key" version.php; then
+              echo "Error: version.php does not contain an increment for $version_key."
+              exit 1
+            fi
+          }
 
-          if [ -z "$version_incremented" ]; then
-            echo "Error: version.php does not contain a valid version increment."
-            exit 1
+          if [ "$admin_changes" -ne "0" ]; then
+            check_version_increment "admin.version"
+          fi
+
+          if [ "$user_changes" -ne "0" ]; then
+            check_version_increment "user.version"
+          fi
+
+          if [ "$teacher_changes" -ne "0" ]; then
+            check_version_increment "teacher.version"
           fi
