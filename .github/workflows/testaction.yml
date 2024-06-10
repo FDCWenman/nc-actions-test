@@ -22,7 +22,9 @@ jobs:
           git fetch origin ${{ github.base_ref }}
           files_changed=$(git diff --name-only origin/${{ github.base_ref }})
           echo "Files changed: $files_changed"
-          echo "files_changed=$files_changed" >> $GITHUB_ENV
+          echo "files_changed<<EOF" >> $GITHUB_ENV
+          echo "$files_changed" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Check if admin files were modified
         id: check_admin
